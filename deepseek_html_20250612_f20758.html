@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel File Reader</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .upload-container {
+            border: 2px dashed #3498db;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #f8f9fa;
+        }
+        #fileInput {
+            display: none;
+        }
+        .upload-btn {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .upload-btn:hover {
+            background-color: #2980b9;
+        }
+        #fileInfo {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .sheet-selector {
+            margin-bottom: 15px;
+        }
+        .error {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Excel File Reader</h1>
+    
+    <div class="upload-container">
+        <label for="fileInput" class="upload-btn">Choose Excel File</label>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
+        <p id="fileInfo">No file selected</p>
+    </div>
+    
+    <div class="sheet-selector" id="sheetSelector" style="display: none;">
+        <label for="sheetSelect">Select Sheet:</label>
+        <select id="sheetSelect"></select>
+    </div>
+    
+    <div id="results">
+        <h2>File Contents:</h2>
+        <div id="tableContainer"></div>
+    </div>
+    
+    <script>
+        document.getElementById('fileInput').addEventListener('change', handleFile);
+        
+        function handleFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            document.getElementById('fileInfo').textContent = `Selected: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    displaySheets(workbook);
+                } catch (error) {
+                    document.getElementById('fileInfo').innerHTML = 
+                        `<span class="error">Error reading file: ${error.message}</span>`;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        function displaySheets(workbook) {
+            const sheetSelect = document.getElementById('sheetSelect');
+            sheetSelect.innerHTML = '';
+            
+            workbook.SheetNames.forEach((name, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = name;
+                sheetSelect.appendChild(option);
+            });
+            
+            document.getElementById('sheetSelector').style.display = 'block';
+            
+            // Display first sheet by default
+            displaySheet(workbook, 0);
+            
+            // Add event listener for sheet selection
+            sheetSelect.addEventListener('change', function() {
+                displaySheet(workbook, this.value);
+            });
+        }
+        
+        function displaySheet(workbook, sheetIndex) {
+            const worksheet = workbook.Sheets[workbook.SheetNames[sheetIndex]];
+            const html = XLSX.utils.sheet_to_html(worksheet);
+            document.getElementById('tableContainer').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
