@@ -138,6 +138,13 @@
         .name-selector {
             margin-bottom: 15px;
         }
+        .time-value {
+            font-size: 10px; /* Smaller font size for time values */
+            white-space: nowrap; /* Prevent wrapping */
+        }
+        .day-value {
+            font-size: 11px; /* Slightly larger for day numbers */
+        }
     @media print {
         body {
             padding: 0;
@@ -357,19 +364,19 @@
                 const pmTimes = dayRecords.pm || [];
                 
                 // Get earliest AM time (arrival) and latest AM time (departure)
-                const amArrival = amTimes.length > 0 ? amTimes[0] : '';
-                const amDeparture = amTimes.length > 1 ? amTimes[amTimes.length - 1] : '';
+                const amArrival = amTimes.length > 0 ? `<span class="time-value">${amTimes[0]}</span>` : '';
+                const amDeparture = amTimes.length > 1 ? `<span class="time-value">${amTimes[amTimes.length - 1]}</span>` : '';
                 
                 // Get earliest PM time (arrival) and latest PM time (departure)
-                const pmArrival = pmTimes.length > 0 ? pmTimes[0] : '';
-                const pmDeparture = pmTimes.length > 1 ? pmTimes[pmTimes.length - 1] : '';
+                const pmArrival = pmTimes.length > 0 ? `<span class="time-value">${pmTimes[0]}</span>` : '';
+                const pmDeparture = pmTimes.length > 1 ? `<span class="time-value">${pmTimes[pmTimes.length - 1]}</span>` : '';
                 
                 // Calculate under time (this is simplified - adjust according to your rules)
-                const underTime = calculateUndertime(amArrival, amDeparture, pmArrival, pmDeparture);
+                const underTime = calculateUndertime(amTimes[0], amTimes[amTimes.length - 1], pmTimes[0], pmTimes[pmTimes.length - 1]);
                 
                 tableRows += `
                     <tr>
-                        <td>${day}</td>
+                        <td class="day-value">${day}</td>
                         <td>${amArrival}</td>
                         <td>${amDeparture}</td>
                         <td>${pmArrival}</td>
@@ -418,32 +425,31 @@
                     </tbody>
                 </table>
 
-<div class="certification" style="margin-top: 15px; font-size: 11px; text-align: center;">
-    I certify on my honor that the above is a true and correct report of the hours work performed,
-    record of which was made daily at the time of arrival and departure from the office.
-</div>
+                <div class="certification" style="margin-top: 15px; font-size: 11px; text-align: center;">
+                    I certify on my honor that the above is a true and correct report of the hours work performed,
+                    record of which was made daily at the time of arrival and departure from the office.
+                </div>
 
-<!-- Employee Signature Section (centered) -->
-<div style="margin-top: 30px; text-align: center;">
-    <div style="display: inline-block; text-align: center;">
-        <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
-            Signature
-        </div>
-    </div>
-</div>
+                <!-- Employee Signature Section (centered) -->
+                <div style="margin-top: 30px; text-align: center;">
+                    <div style="display: inline-block; text-align: center;">
+                        <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
+                            Signature
+                        </div>
+                    </div>
+                </div>
 
-
-<!-- Principal Signature Section (centered with bold name above line) -->
-<div style="margin-top: 30px; text-align: center;">
-    <div style="display: inline-block; text-align: center;">
-        <div style="font-size: 11px; margin-bottom: 5px; font-weight: bold;">
-            MA. TERESA P. DINERO, PhD.
-        </div>
-        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
-            Principal II
-        </div>
-    </div>
-</div>
+                <!-- Principal Signature Section (centered with bold name above line) -->
+                <div style="margin-top: 30px; text-align: center;">
+                    <div style="display: inline-block; text-align: center;">
+                        <div style="font-size: 11px; margin-bottom: 5px; font-weight: bold;">
+                            MA. TERESA P. DINERO, PhD.
+                        </div>
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
+                            Principal II
+                        </div>
+                    </div>
+                </div>
             `;
         }
         
