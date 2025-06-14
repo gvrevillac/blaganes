@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel File Reader</title>
+    <title>DTR Generator (Two Copies)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
@@ -36,63 +36,168 @@
             border-radius: 5px;
             cursor: pointer;
             font-size: 16px;
+            margin: 5px;
         }
         .upload-btn:hover {
             background-color: #2980b9;
+        }
+        .action-btn {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        .action-btn:hover {
+            background-color: #219653;
+        }
+        .action-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
         }
         #fileInfo {
             margin-top: 10px;
             font-style: italic;
         }
-        #results {
-            margin-top: 20px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .sheet-selector {
+        .button-container {
+            display: flex;
+            justify-content: center;
             margin-bottom: 15px;
         }
         .error {
             color: #e74c3c;
             font-weight: bold;
         }
+        .dtr-template {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+        }
+        .dtr-template td, .dtr-template th {
+            border: 1px solid #000;
+            padding: 3px;
+            text-align: center;
+        }
+        .dtr-template th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .dtr-header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .dtr-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .dtr-subtitle {
+            font-style: italic;
+            margin-bottom: 5px;
+            font-size: 11px;
+        }
+        .employee-info {
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 12px;
+        }
+        .month-info {
+            margin-bottom: 10px;
+            text-align: left;
+            font-size: 11px;
+        }
+        .signature-section {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 100px;
+            border-top: 1px solid #000;
+            text-align: center;
+            padding-top: 3px;
+            font-size: 11px;
+        }
+        .dtr-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .dtr-copy {
+            width: 48%;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: white;
+            page-break-inside: avoid;
+        }
+        .name-selector {
+            margin-bottom: 15px;
+        }
+    @media print {
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .upload-container, .button-container, h1 {
+            display: none;
+        }
+        .dtr-copy {
+            width: 48%;
+            border: none;
+            padding: 5px;
+        }
+    }
     </style>
 </head>
 <body>
-    <h1>Excel File Reader</h1>
+    <h1>DTR Generator (Two Copies)</h1>
     
     <div class="upload-container">
-        <label for="fileInput" class="upload-btn">Choose Excel File</label>
-        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" />
+        <div class="button-container">
+            <label for="fileInput" class="upload-btn">Choose Attendance File</label>
+            <button id="printDTR" class="action-btn" style="display: none;" onclick="window.print()">Print DTR</button>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .xml" />
         <p id="fileInfo">No file selected</p>
+        
+        <div class="name-selector" id="nameSelector" style="display: none;">
+            <label for="employeeSelect">Select Employee: </label>
+            <select id="employeeSelect"></select>
+            <label for="monthSelect" style="margin-left: 15px;">Select Month: </label>
+            <select id="monthSelect">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+            <label for="yearSelect" style="margin-left: 15px;">Year: </label>
+            <input type="number" id="yearSelect" min="2000" max="2100" value="2025">
+            <button id="generateDTR" class="action-btn" style="margin-left: 15px;">Generate DTR</button>
+        </div>
     </div>
     
-    <div class="sheet-selector" id="sheetSelector" style="display: none;">
-        <label for="sheetSelect">Select Sheet:</label>
-        <select id="sheetSelect"></select>
-    </div>
-    
-    <div id="results">
-        <h2>File Contents:</h2>
-        <div id="tableContainer"></div>
+    <div id="dtrOutput" class="dtr-container" style="display: none;">
+        <!-- Two DTR copies will be generated here -->
     </div>
     
     <script>
+        let attendanceData = [];
+        
         document.getElementById('fileInput').addEventListener('change', handleFile);
+        document.getElementById('generateDTR').addEventListener('click', generateDTR);
         
         function handleFile(e) {
             const file = e.target.files[0];
@@ -103,43 +208,261 @@
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    displaySheets(workbook);
+                    if (file.name.endsWith('.xml')) {
+                        // Handle XML file
+                        const xmlText = e.target.result;
+                        const xmlDoc = parseXML(xmlText);
+                        attendanceData = processXMLData(xmlDoc);
+                    } else {
+                        // Handle Excel file
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        attendanceData = processExcelData(workbook);
+                    }
+                    
+                    populateEmployeeSelect();
+                    document.getElementById('nameSelector').style.display = 'block';
                 } catch (error) {
                     document.getElementById('fileInfo').innerHTML = 
                         `<span class="error">Error reading file: ${error.message}</span>`;
+                    console.error(error);
                 }
             };
-            reader.readAsArrayBuffer(file);
+            
+            if (file.name.endsWith('.xml')) {
+                reader.readAsText(file);
+            } else {
+                reader.readAsArrayBuffer(file);
+            }
         }
         
-        function displaySheets(workbook) {
-            const sheetSelect = document.getElementById('sheetSelect');
-            sheetSelect.innerHTML = '';
+        function parseXML(xmlText) {
+            const parser = new DOMParser();
+            return parser.parseFromString(xmlText, "text/xml");
+        }
+        
+        function processXMLData(xmlDoc) {
+            const rows = xmlDoc.getElementsByTagName("Row");
+            const data = [];
             
-            workbook.SheetNames.forEach((name, index) => {
+            // Start from row 3 to skip headers (based on the sample XML)
+            for (let i = 3; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName("Cell");
+                if (cells.length >= 6) {
+                    const rowData = {
+                        no: cells[0].textContent.trim(),
+                        id: cells[1].textContent.trim(),
+                        name: cells[2].textContent.trim(),
+                        time: cells[3].textContent.trim(),
+                        type: cells[4].textContent.trim(),
+                        status: cells[5].textContent.trim()
+                    };
+                    if (rowData.name) {
+                        data.push(rowData);
+                    }
+                }
+            }
+            
+            return data;
+        }
+        
+        function processExcelData(workbook) {
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            return XLSX.utils.sheet_to_json(firstSheet);
+        }
+        
+        function populateEmployeeSelect() {
+            const select = document.getElementById('employeeSelect');
+            select.innerHTML = '';
+            
+            // Get unique names
+            const uniqueNames = [...new Set(attendanceData.map(item => item.name))].sort();
+            
+            uniqueNames.forEach(name => {
                 const option = document.createElement('option');
-                option.value = index;
+                option.value = name;
                 option.textContent = name;
-                sheetSelect.appendChild(option);
-            });
-            
-            document.getElementById('sheetSelector').style.display = 'block';
-            
-            // Display first sheet by default
-            displaySheet(workbook, 0);
-            
-            // Add event listener for sheet selection
-            sheetSelect.addEventListener('change', function() {
-                displaySheet(workbook, this.value);
+                select.appendChild(option);
             });
         }
         
-        function displaySheet(workbook, sheetIndex) {
-            const worksheet = workbook.Sheets[workbook.SheetNames[sheetIndex]];
-            const html = XLSX.utils.sheet_to_html(worksheet);
-            document.getElementById('tableContainer').innerHTML = html;
+        function generateDTR() {
+            const employeeName = document.getElementById('employeeSelect').value;
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            
+            if (!employeeName) {
+                alert('Please select an employee');
+                return;
+            }
+            
+            // Filter data for selected employee
+            const employeeData = attendanceData.filter(item => item.name === employeeName);
+            
+            // Generate DTR HTML
+            const dtrHTML = createDTRTemplate(employeeName, month, year, employeeData);
+            
+            // Display two copies side by side
+            document.getElementById('dtrOutput').innerHTML = `
+                <div class="dtr-copy">${dtrHTML}</div>
+                <div class="dtr-copy">${dtrHTML}</div>
+            `;
+            document.getElementById('dtrOutput').style.display = 'flex';
+            document.getElementById('printDTR').style.display = 'inline-block';
+        }
+        
+        function createDTRTemplate(name, month, year, attendanceRecords) {
+            const monthNames = ["January", "February", "March", "April", "May", "June", 
+                              "July", "August", "September", "October", "November", "December"];
+            const daysInMonth = new Date(year, month, 0).getDate();
+            
+            // Process attendance records into a more usable format
+            const processedRecords = {};
+            
+            attendanceRecords.forEach(record => {
+                if (!record.time) return;
+                
+                const dateTime = new Date(record.time);
+                if (isNaN(dateTime.getTime())) return;
+                
+                // Only process records for the selected month/year
+                if (dateTime.getFullYear() !== year || (dateTime.getMonth() + 1) !== month) return;
+                
+                const day = dateTime.getDate();
+                const timeStr = formatTime(dateTime);
+                const isAM = dateTime.getHours() < 12;
+                
+                if (!processedRecords[day]) {
+                    processedRecords[day] = { am: [], pm: [] };
+                }
+                
+                if (isAM) {
+                    processedRecords[day].am.push(timeStr);
+                } else {
+                    processedRecords[day].pm.push(timeStr);
+                }
+            });
+            
+            // Sort times for each day
+            for (const day in processedRecords) {
+                processedRecords[day].am.sort();
+                processedRecords[day].pm.sort();
+            }
+            
+            // Generate table rows
+            let tableRows = '';
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dayRecords = processedRecords[day] || {};
+                const amTimes = dayRecords.am || [];
+                const pmTimes = dayRecords.pm || [];
+                
+                // Get earliest AM time (arrival) and latest AM time (departure)
+                const amArrival = amTimes.length > 0 ? amTimes[0] : '';
+                const amDeparture = amTimes.length > 1 ? amTimes[amTimes.length - 1] : '';
+                
+                // Get earliest PM time (arrival) and latest PM time (departure)
+                const pmArrival = pmTimes.length > 0 ? pmTimes[0] : '';
+                const pmDeparture = pmTimes.length > 1 ? pmTimes[pmTimes.length - 1] : '';
+                
+                // Calculate under time (this is simplified - adjust according to your rules)
+                const underTime = calculateUndertime(amArrival, amDeparture, pmArrival, pmDeparture);
+                
+                tableRows += `
+                    <tr>
+                        <td>${day}</td>
+                        <td>${amArrival}</td>
+                        <td>${amDeparture}</td>
+                        <td>${pmArrival}</td>
+                        <td>${pmDeparture}</td>
+                        <td>${underTime.hours}</td>
+                        <td>${underTime.minutes}</td>
+                    </tr>
+                `;
+            }
+            
+            return `
+                <div class="dtr-header">
+                    <div class="dtr-title">DAILY TIME RECORD</div>
+                    <div class="dtr-subtitle"></div>
+                </div>
+                
+                <div class="employee-info">
+                    <strong>Name:</strong> ${name}
+                </div>
+                
+                <div class="month-info">
+                    <strong>For the month of ${monthNames[month-1]}, ${year}</strong><br>
+                    <em>Official hours of arrival and departure</em><br>
+                    <em>Regular Days Saturdays ______</em>
+                </div>
+                
+                <table class="dtr-template">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">Days</th>
+                            <th colspan="2">A M</th>
+                            <th colspan="2">P M</th>
+                            <th colspan="2">UNDER TIME</th>
+                        </tr>
+                        <tr>
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                            <th>Arrival</th>
+                            <th>Departure</th>
+                            <th>Hours</th>
+                            <th>Minutes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+
+<div class="certification" style="margin-top: 15px; font-size: 11px; text-align: center;">
+    I certify on my honor that the above is a true and correct report of the hours work performed,
+    record of which was made daily at the time of arrival and departure from the office.
+</div>
+
+<!-- Employee Signature Section (centered) -->
+<div style="margin-top: 30px; text-align: center;">
+    <div style="display: inline-block; text-align: center;">
+        <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
+            Signature
+        </div>
+    </div>
+</div>
+
+
+<!-- Principal Signature Section (centered with bold name above line) -->
+<div style="margin-top: 30px; text-align: center;">
+    <div style="display: inline-block; text-align: center;">
+        <div style="font-size: 11px; margin-bottom: 5px; font-weight: bold;">
+            MA. TERESA P. DINERO, PhD.
+        </div>
+        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
+            Principal II
+        </div>
+    </div>
+</div>
+            `;
+        }
+        
+        function formatTime(date) {
+            if (!date) return '';
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours % 12 || 12;
+            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+        }
+        
+        function calculateUndertime(amArrival, amDeparture, pmArrival, pmDeparture) {
+            // This is a simplified calculation - adjust according to your specific rules
+            // Here we're just returning empty for all cases
+            return {
+                hours: '',
+                minutes: ''
+            };
         }
     </script>
 </body>
