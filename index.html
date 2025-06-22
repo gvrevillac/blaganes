@@ -91,15 +91,24 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        .dtr-title {
+.dtr-title {
+    font-size: 11px; /* Matches official-hours font size */
+    font-style: italic; /* Correct way to italicize */
+    margin-bottom: 3px;
+    text-align: left;
+}
+
+        .dtr-title-center {
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 3px;
+            text-align: center;
         }
         .dtr-subtitle {
             font-style: italic;
             margin-bottom: 5px;
             font-size: 11px;
+            text-align: center;
         }
         .employee-info {
             margin-bottom: 10px;
@@ -110,6 +119,22 @@
             margin-bottom: 10px;
             text-align: left;
             font-size: 11px;
+        }
+        .month-year {
+            text-decoration: underline;
+    font-size: 16px;
+    font-weight: bold;
+        }
+        .official-hours {
+            margin-top: 5px;
+            font-size: 11px;
+        }
+        .hours-label {
+            font-weight: bold;
+        }
+        .hours-days {
+            margin-left: 20px;
+    font-size: 11px; /* Added to match official-hours font size */
         }
         .signature-section {
             margin-top: 15px;
@@ -139,11 +164,11 @@
             margin-bottom: 15px;
         }
         .time-value {
-            font-size: 10px; /* Smaller font size for time values */
-            white-space: nowrap; /* Prevent wrapping */
+            font-size: 10px;
+            white-space: nowrap;
         }
         .day-value {
-            font-size: 11px; /* Slightly larger for day numbers */
+            font-size: 11px;
         }
     @media print {
         body {
@@ -389,8 +414,9 @@
             
             return `
                 <div class="dtr-header">
-                    <div class="dtr-title">DAILY TIME RECORD</div>
-                    <div class="dtr-subtitle"></div>
+                    <div class="dtr-title">Civil Service Form No. 48</div>
+                    <div class="dtr-title-center">DAILY TIME RECORD</div>
+                    <div class="dtr-subtitle">---o0o---</div>
                 </div>
                 
                 <div class="employee-info">
@@ -398,9 +424,17 @@
                 </div>
                 
                 <div class="month-info">
-                    <strong>For the month of ${monthNames[month-1]}, ${year}</strong><br>
-                    <em>Official hours of arrival and departure</em><br>
-                    <em>Regular Days Saturdays ______</em>
+                    <strong>For the MONTH of <span class="month-year">${monthNames[month-1]} ${year}</span></strong>
+                </div>
+                
+                <div class="official-hours">
+                    <span class="hours-label">Official hours for arrival and departure</span>
+                </div>
+                <div class="hours-days">
+                    Regular days
+                </div>
+                <div class="hours-days">
+                    Saturdays
                 </div>
                 
                 <table class="dtr-template">
