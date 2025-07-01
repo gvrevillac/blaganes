@@ -255,44 +255,16 @@
 
 function exportToExcel() {
     const fullName = document.getElementById('fullNameInput').value;
-    const month = parseInt(document.getElementById('monthSelect').value);
-    const year = parseInt(document.getElementById('yearSelect').value);
+    const month = document.getElementById('monthSelect').value;
+    const year = document.getElementById('yearSelect').value;
 
     if (!fullName) {
         alert('Please enter full name');
         return;
     }
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'DTR.xlsx', true); // or 'DTR.xlsx' if static
-    xhr.responseType = 'arraybuffer';
-
-    xhr.onload = function(e) {
-        if (this.status === 200) {
-            try {
-                const data = new Uint8Array(this.response);
-                const workbook = XLSX.read(data, { type: 'array' });
-
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-
-                if (worksheet['C4']) worksheet['C4'].v = fullName;
-                if (worksheet['K4']) worksheet['K4'].v = fullName;
-
-                XLSX.writeFile(workbook, `DTR_${fullName.replace(/ /g, '_')}_${month}_${year}.xlsx`);
-            } catch (error) {
-                alert('Error processing template: ' + error.message);
-                console.error(error);
-            }
-        } else {
-            alert('Error loading template file. Status: ' + this.status);
-        }
-    };
-
-    xhr.onerror = function() {
-        alert('Error loading template file.');
-    };
-
-    xhr.send();
+    const query = `name=${encodeURIComponent(fullName)}&month=${month}&year=${year}`;
+    window.open(`export_dtr.php?${query}`, '_blank');
 }
         
         function handleFile(e) {
