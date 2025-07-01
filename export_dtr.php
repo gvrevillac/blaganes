@@ -1,5 +1,5 @@
 <?php
-require 'vendor/autoload.php'; // use Composer to install PhpSpreadsheet
+require 'vendor/autoload.php';
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -7,9 +7,13 @@ $fullName = $_GET['name'] ?? 'No Name';
 $month = $_GET['month'] ?? '';
 $year = $_GET['year'] ?? '';
 
-$templatePath = 'DTR.xlsx';
-$spreadsheet = IOFactory::load($templatePath);
+$templatePath = __DIR__ . '/DTR.xlsx';
 
+if (!file_exists($templatePath)) {
+    die("Template file not found at: $templatePath");
+}
+
+$spreadsheet = IOFactory::load($templatePath);
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setCellValue('C4', $fullName);
 $sheet->setCellValue('K4', $fullName);
