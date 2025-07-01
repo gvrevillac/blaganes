@@ -264,7 +264,7 @@ function exportToExcel() {
     }
     
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'get_template.php', true);
+    xhr.open('GET', 'DTR.xlsx', true);
     xhr.responseType = 'arraybuffer';
     
     xhr.onload = function(e) {
