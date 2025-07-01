@@ -1,3 +1,5 @@
+<?php include 'db_conn.php'; ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,13 +93,12 @@
             text-align: center;
             margin-bottom: 10px;
         }
-.dtr-title {
-    font-size: 11px; /* Matches official-hours font size */
-    font-style: italic; /* Correct way to italicize */
-    margin-bottom: 3px;
-    text-align: left;
-}
-
+        .dtr-title {
+            font-size: 11px;
+            font-style: italic;
+            margin-bottom: 3px;
+            text-align: left;
+        }
         .dtr-title-center {
             font-size: 14px;
             font-weight: bold;
@@ -122,8 +123,8 @@
         }
         .month-year {
             text-decoration: underline;
-    font-size: 16px;
-    font-weight: bold;
+            font-size: 16px;
+            font-weight: bold;
         }
         .official-hours {
             margin-top: 5px;
@@ -134,7 +135,7 @@
         }
         .hours-days {
             margin-left: 20px;
-    font-size: 11px; /* Added to match official-hours font size */
+            font-size: 11px;
         }
         .signature-section {
             margin-top: 15px;
@@ -170,20 +171,33 @@
         .day-value {
             font-size: 11px;
         }
-    @media print {
-        body {
+        .name-input {
+            border: none;
+            border-bottom: 1px solid #000;
+            font-family: inherit;
+            font-size: inherit;
             padding: 0;
             margin: 0;
+            width: 300px;
+            background: transparent;
         }
-        .upload-container, .button-container, h1 {
-            display: none;
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+            .upload-container, .button-container, h1 {
+                display: none;
+            }
+            .dtr-copy {
+                width: 48%;
+                border: none;
+                padding: 5px;
+            }
+            .name-input {
+                border-bottom: none;
+            }
         }
-        .dtr-copy {
-            width: 48%;
-            border: none;
-            padding: 5px;
-        }
-    }
     </style>
 </head>
 <body>
@@ -193,6 +207,7 @@
         <div class="button-container">
             <label for="fileInput" class="upload-btn">Choose Attendance File</label>
             <button id="printDTR" class="action-btn" style="display: none;" onclick="window.print()">Print DTR</button>
+            <button id="exportExcel" class="action-btn" style="display: none; background-color: #f39c12;" onclick="exportToExcel()">Export to Excel</button>
         </div>
         <input type="file" id="fileInput" accept=".xlsx, .xls, .csv, .xml" />
         <p id="fileInfo">No file selected</p>
@@ -200,6 +215,8 @@
         <div class="name-selector" id="nameSelector" style="display: none;">
             <label for="employeeSelect">Select Employee: </label>
             <select id="employeeSelect"></select>
+            <label for="fullNameInput" style="margin-left: 15px;">Full Name: </label>
+            <input type="text" id="fullNameInput" class="name-input" placeholder="Enter full name as it should appear">
             <label for="monthSelect" style="margin-left: 15px;">Select Month: </label>
             <select id="monthSelect">
                 <option value="1">January</option>
@@ -230,6 +247,59 @@
         
         document.getElementById('fileInput').addEventListener('change', handleFile);
         document.getElementById('generateDTR').addEventListener('click', generateDTR);
+        document.getElementById('employeeSelect').addEventListener('change', function() {
+            // Auto-fill the full name input when an employee is selected
+            const selectedName = this.value;
+            document.getElementById('fullNameInput').value = selectedName;
+        });
+
+        function exportToExcel() {
+            const fullName = document.getElementById('fullNameInput').value;
+            const month = parseInt(document.getElementById('monthSelect').value);
+            const year = parseInt(document.getElementById('yearSelect').value);
+            
+            if (!fullName) {
+                alert('Please enter full name');
+                return;
+            }
+            
+            // Create a request to fetch the template
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'get_template.php', true);
+            xhr.responseType = 'arraybuffer';
+            
+            xhr.onload = function(e) {
+                if (this.status === 200) {
+                    try {
+                        const data = new Uint8Array(this.response);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // Get the first sheet
+                        const firstSheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[firstSheetName];
+                        
+                        // Update cell C4 with the full name
+                        if (!worksheet['C4']) worksheet['C4'] = {};
+                        worksheet['C4'].v = fullName;
+                        worksheet['C4'].t = 's';
+                        
+                        // Generate the Excel file and download it
+                        XLSX.writeFile(workbook, `DTR_${fullName.replace(/ /g, '_')}_${month}_${year}.xlsx`);
+                    } catch (error) {
+                        alert('Error processing template: ' + error.message);
+                        console.error(error);
+                    }
+                } else {
+                    alert('Error loading template file. Status: ' + this.status);
+                }
+            };
+            
+            xhr.onerror = function() {
+                alert('Error loading template file. Please make sure DTR.xlsx exists in the same directory.');
+            };
+            
+            xhr.send();
+        }
         
         function handleFile(e) {
             const file = e.target.files[0];
@@ -319,20 +389,17 @@
         }
         
         function generateDTR() {
-            const employeeName = document.getElementById('employeeSelect').value;
+            const fullName = document.getElementById('fullNameInput').value;
             const month = parseInt(document.getElementById('monthSelect').value);
             const year = parseInt(document.getElementById('yearSelect').value);
             
-            if (!employeeName) {
-                alert('Please select an employee');
+            if (!fullName) {
+                alert('Please enter full name');
                 return;
             }
             
-            // Filter data for selected employee
-            const employeeData = attendanceData.filter(item => item.name === employeeName);
-            
             // Generate DTR HTML
-            const dtrHTML = createDTRTemplate(employeeName, month, year, employeeData);
+            const dtrHTML = createDTRTemplate(fullName, month, year, attendanceData);
             
             // Display two copies side by side
             document.getElementById('dtrOutput').innerHTML = `
@@ -341,6 +408,7 @@
             `;
             document.getElementById('dtrOutput').style.display = 'flex';
             document.getElementById('printDTR').style.display = 'inline-block';
+            document.getElementById('exportExcel').style.display = 'inline-block';
         }
         
         function createDTRTemplate(name, month, year, attendanceRecords) {
@@ -416,11 +484,10 @@
                 <div class="dtr-header">
                     <div class="dtr-title">Civil Service Form No. 48</div>
                     <div class="dtr-title-center">DAILY TIME RECORD</div>
-                    <div class="dtr-subtitle">---o0o---</div>
                 </div>
                 
                 <div class="employee-info">
-                    <strong>Name:</strong> ${name}
+                    <strong>Name:</strong> <input type="text" class="name-input" value="${name}" readonly>
                 </div>
                 
                 <div class="month-info">
@@ -466,9 +533,11 @@
 
                 <!-- Employee Signature Section (centered) -->
                 <div style="margin-top: 30px; text-align: center;">
-                    <div style="display: inline-block; text-align: center;">
-                        <div style="border-top: 1px solid #000; width: 300px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
-                            Signature
+                    <div style="display: inline-block; text-align: center;">                        
+                        <div style="font-size: 11px; margin-bottom: 5px; font-weight: bold;">
+                            ${name}
+                        </div>
+                        <div style="border-top: 1px solid #000; width: 200px; margin: 0 auto; padding-top: 3px; font-size: 11px;">
                         </div>
                     </div>
                 </div>
@@ -487,14 +556,13 @@
             `;
         }
         
-function formatTime(date) {
-    if (!date) return '';
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const displayHours = hours % 12 || 12; // Convert to 12-hour format without AM/PM
-    return `${displayHours}:${minutes.toString().padStart(2, '0')}`;
-}
-
+        function formatTime(date) {
+            if (!date) return '';
+            const hours = date.getHours();
+            const minutes = date.getMinutes();
+            const displayHours = hours % 12 || 12; // Convert to 12-hour format without AM/PM
+            return `${displayHours}:${minutes.toString().padStart(2, '0')}`;
+        }
         
         function calculateUndertime(amArrival, amDeparture, pmArrival, pmDeparture) {
             // This is a simplified calculation - adjust according to your specific rules
