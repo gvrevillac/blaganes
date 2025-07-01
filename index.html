@@ -257,30 +257,27 @@ function exportToExcel() {
     const fullName = document.getElementById('fullNameInput').value;
     const month = parseInt(document.getElementById('monthSelect').value);
     const year = parseInt(document.getElementById('yearSelect').value);
-    
+
     if (!fullName) {
         alert('Please enter full name');
         return;
     }
-    
+
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'DTR.xlsx', true);
+    xhr.open('GET', 'get_template.php', true); // or 'DTR.xlsx' if static
     xhr.responseType = 'arraybuffer';
-    
+
     xhr.onload = function(e) {
         if (this.status === 200) {
             try {
                 const data = new Uint8Array(this.response);
                 const workbook = XLSX.read(data, { type: 'array' });
+
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                
-                // Update only C4 and K4 cells
-                ['C4', 'K4'].forEach(cell => {
-                    if (!worksheet[cell]) worksheet[cell] = {};
-                    worksheet[cell].v = fullName;
-                    worksheet[cell].t = 's';
-                });
-                
+
+                if (worksheet['C4']) worksheet['C4'].v = fullName;
+                if (worksheet['K4']) worksheet['K4'].v = fullName;
+
                 XLSX.writeFile(workbook, `DTR_${fullName.replace(/ /g, '_')}_${month}_${year}.xlsx`);
             } catch (error) {
                 alert('Error processing template: ' + error.message);
@@ -290,11 +287,11 @@ function exportToExcel() {
             alert('Error loading template file. Status: ' + this.status);
         }
     };
-    
+
     xhr.onerror = function() {
         alert('Error loading template file.');
     };
-    
+
     xhr.send();
 }
         
