@@ -487,14 +487,14 @@
             `;
         }
         
-        function formatTime(date) {
-            if (!date) return '';
-            const hours = date.getHours();
-            const minutes = date.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            const displayHours = hours % 12 || 12;
-            return `${displayHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-        }
+function formatTime(date) {
+    if (!date) return '';
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const displayHours = hours % 12 || 12; // Convert to 12-hour format without AM/PM
+    return `${displayHours}:${minutes.toString().padStart(2, '0')}`;
+}
+
         
         function calculateUndertime(amArrival, amDeparture, pmArrival, pmDeparture) {
             // This is a simplified calculation - adjust according to your specific rules
